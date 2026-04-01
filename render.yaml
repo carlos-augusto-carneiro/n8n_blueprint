@@ -2,9 +2,9 @@ services:
   - type: web
     name: n8n-app
     env: docker
-    dockerfilePath: ./n8n/Dockerfile 
+    dockerfilePath: ./n8n/Dockerfile
     plan: starter
-    region: oregon 
+    region: oregon
     healthCheckPath: /healthz
     envVars:
       - key: PORT
@@ -36,9 +36,9 @@ services:
       - key: N8N_ENCRYPTION_KEY
         generateValue: true
       - key: N8N_TASKS_RUNNER_JS_ENABLED
-        value: "true"
+        value: "true" #
       - key: N8N_TASKS_RUNNER_PYTHON_ENABLED
-        value: "true" 
+        value: "true" #
     disk:
       name: n8n-storage
       mountPath: /home/node/.n8n
@@ -70,7 +70,8 @@ services:
           name: n8n-db
           property: database
       - key: CACHE_REDIS_URI
-        fromKeyValue:
+        fromService: 
+          type: keyvalue
           name: n8n-cache
           property: connectionString
       - key: AUTHENTICATION_API_KEY
@@ -78,12 +79,13 @@ services:
       - key: SERVER_URL
         value: https://evolution-api.onrender.com
 
+  - type: keyvalue
+    name: n8n-cache
+    region: oregon
+    plan: starter 
+    ipAllowList: [] 
+
 databases:
   - name: n8n-db
-    plan: free 
-    region: oregon
-
-keyValues:
-  - name: n8n-cache 
     plan: free
     region: oregon
