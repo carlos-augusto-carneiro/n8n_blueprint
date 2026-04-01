@@ -1,5 +1,5 @@
 # Baseado na versão estável 2.14.2
-FROM n8nio/n8n:2.14.2
+FROM n8nio/n8n:stable
 
 USER root
 
