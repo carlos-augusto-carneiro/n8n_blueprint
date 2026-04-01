@@ -12,8 +12,8 @@ RUN apk add --update --no-cache \
 
 # Configuração dos Certificados (C6 Bank)
 # Certifique-se de ter a pasta ./n8n/certs/ com seu arquivo .crt
-COPY ./certs/c6_bank.crt /usr/local/share/ca-certificates/c6_bank.crt
-RUN update-ca-certificates
+#COPY ./certs/c6_bank.crt /usr/local/share/ca-certificates/c6_bank.crt
+#RUN update-ca-certificates
 
 # Retorna para o usuário node por segurança (Best Practice)
 USER node
