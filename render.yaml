@@ -45,6 +45,7 @@ projects:
                 value: "true" #
 
             
+          # 2. Evolution API (v2.3.6 / v2.14.2)
           - type: web
             name: evolution-api
             env: docker
@@ -52,8 +53,12 @@ projects:
             plan: free
             region: oregon
             envVars:
+              # MONTAGEM DA URL DO BANCO (Postgres)
+              # Aqui evitamos o erro "invalid provider" forçando o prefixo postgresql://
               - key: DATABASE_CONNECTION_URI
                 value: postgresql://${DB_USER}:${DB_PASSWORD}@${DB_HOST}/${DB_NAME}?schema=evolution
+              
+              # Referências ao Banco n8n-db
               - key: DB_USER
                 fromDatabase:
                   name: n8n-db
@@ -70,15 +75,22 @@ projects:
                 fromDatabase:
                   name: n8n-db
                   property: database
+
+              # CONFIGURAÇÃO DO CACHE (Redis / Key Value)
+              # Importante: A chave para o Redis DEVE ser CACHE_REDIS_URI
               - key: CACHE_REDIS_URI
-                fromService: 
+                fromService:
                   type: keyvalue
                   name: n8n-cache
                   property: connectionString
+
+              # CONFIGURAÇÕES GERAIS
               - key: AUTHENTICATION_API_KEY
                 value: 5da2b7cd3b04394e9cc091cc9748a508e4572c7feaa33489d4ff13a8ddce6bb6
               - key: SERVER_URL
-                value: https://evolution-api.onrender.com
+                value: https://evolution-api.onrender.com # Ajuste com sua URL do Render
+              - key: DELAY_MESSAGES
+                value: "true"
 
           - type: keyvalue
             name: n8n-cache

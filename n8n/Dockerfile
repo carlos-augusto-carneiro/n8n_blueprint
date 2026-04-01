@@ -1,22 +1,17 @@
-# Baseado na versão estável 2.14.2
 FROM n8nio/n8n:stable
 
+# É obrigatório mudar para root para instalar pacotes no Debian
 USER root
 
-# Instala Python 3 e dependências para os novos Agentes de IA e Task Runners
-RUN apk add --update --no-cache \
+# No Debian, usamos apt-get em vez de apk
+RUN apt-get update && apt-get install -y \
     python3 \
-    py3-pip \
+    python3-pip \
     ca-certificates \
-    && ln -sf python3 /usr/bin/python
+    && ln -sf /usr/bin/python3 /usr/bin/python \
+    && rm -rf /var/lib/apt/lists/*
 
-# Configuração dos Certificados (C6 Bank)
-# Certifique-se de ter a pasta ./n8n/certs/ com seu arquivo .crt
-#COPY ./certs/c6_bank.crt /usr/local/share/ca-certificates/c6_bank.crt
-#RUN update-ca-certificates
-
-# Retorna para o usuário node por segurança (Best Practice)
+# Volta para o usuário padrão para rodar o n8n com segurança
 USER node
 
-# O Render injeta a porta automaticamente, o n8n a lerá via ENV
 CMD ["n8n"]
