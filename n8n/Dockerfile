@@ -2,13 +2,16 @@ FROM n8nio/n8n:2.14.2
 
 USER root
 
-# 1. Recuperando o instalador apk de uma imagem Alpine pura
-COPY --from=alpine:latest /sbin/apk /sbin/apk
-COPY --from=alpine:latest /usr/lib/libapk.so* /usr/lib/
-COPY --from=alpine:latest /etc/apk /etc/apk
+# 1. Recupera o instalador estático do apk nativamente, sem forçar repositórios de outras versões
+RUN ARCH=$(uname -m) && \
+    wget -qO- "http://dl-cdn.alpinelinux.org/alpine/latest-stable/main/${ARCH}/" | \
+    grep -o 'href="apk-tools-static-[^"]*\.apk"' | head -1 | cut -d'"' -f2 | \
+    xargs -I {} wget -q "http://dl-cdn.alpinelinux.org/alpine/latest-stable/main/${ARCH}/{}" && \
+    tar -xzf apk-tools-static-*.apk -C / && \
+    rm apk-tools-static-*.apk
 
-# 2. Agora que o apk está de volta, podemos instalar o Python!
-RUN apk update && apk add --no-cache \
+# 2. Usa a versão estática do apk para instalar o Python com total segurança
+RUN /sbin/apk.static add --update --no-cache \
     python3 \
     py3-pip \
     ca-certificates \
@@ -16,5 +19,5 @@ RUN apk update && apk add --no-cache \
 
 USER node
 
-# O entrypoint já está definido na imagem base, então só o CMD basta
-CMD ["n8n"]
+# Nota: O CMD ["n8n"] foi removido de propósito. 
+# Deixaremos o Docker usar o ENTRYPOINT seguro original da própria imagem do n8n.
