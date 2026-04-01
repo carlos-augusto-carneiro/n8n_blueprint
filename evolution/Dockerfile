@@ -1,5 +1,5 @@
 # Utilizando a build 2.14.2 estável
-FROM atendai/evolution-api:1.8.7
+FROM evoapicloud/evolution-api:v2.3.6
 
 USER root
 
