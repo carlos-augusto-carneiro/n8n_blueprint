@@ -2,14 +2,16 @@ FROM n8nio/n8n:2.14.2
 
 USER root
 
-# Como a imagem é baseada em Debian, usamos apt-get em vez de apk.
-# Instalando Python para os novos nós de código:
-RUN apt-get update && apt-get install -y \
+# 1. Recuperando o instalador apk de uma imagem Alpine pura
+COPY --from=alpine:latest /sbin/apk /sbin/apk
+COPY --from=alpine:latest /usr/lib/libapk.so* /usr/lib/
+COPY --from=alpine:latest /etc/apk /etc/apk
+
+# 2. Agora que o apk está de volta, podemos instalar o Python!
+RUN apk update && apk add --no-cache \
     python3 \
-    python3-pip \
+    py3-pip \
     ca-certificates \
-    && apt-get clean \
-    && rm -rf /var/lib/apt/lists/* \
     && ln -sf /usr/bin/python3 /usr/bin/python
 
 USER node
