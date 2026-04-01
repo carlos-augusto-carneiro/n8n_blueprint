@@ -1,17 +1,14 @@
-# Utilizando a build 2.14.2 estável
+# Utilizando a build v2.3.6
 FROM evoapicloud/evolution-api:v2.3.6
 
 USER root
 
-# Instala ffmpeg para conversão de mídias e áudios
-RUN apt-get update && apt-get install -y \
-    ffmpeg \
-    && rm -rf /var/lib/apt/lists/*
+# No Alpine, usamos 'apk' em vez de 'apt-get'
+RUN apk add --update --no-cache \
+    ffmpeg
 
 USER node
 
-# Porta padrão da API
 EXPOSE 8080
 
-# Comando de inicialização padrão da Evolution v2
 CMD ["node", "./dist/src/main.js"]
