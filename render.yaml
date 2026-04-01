@@ -1,88 +1,92 @@
-services:
-  - type: web
-    name: n8n-app
-    env: docker
-    dockerfilePath: ./n8n/Dockerfile
-    plan: free
-    region: oregon
-    healthCheckPath: /healthz
-    envVars:
-      - key: PORT
-        value: 5678
-      - key: N8N_PORT
-        value: 5678
-      - key: DB_TYPE
-        value: postgresdb
-      - key: DB_POSTGRESDB_HOST
-        fromDatabase:
-          name: n8n-db
-          property: host
-      - key: DB_POSTGRESDB_PORT
-        value: 5432
-      - key: DB_POSTGRESDB_DATABASE
-        fromDatabase:
-          name: n8n-db
-          property: database
-      - key: DB_POSTGRESDB_USER
-        fromDatabase:
-          name: n8n-db
-          property: user
-      - key: DB_POSTGRESDB_PASSWORD
-        fromDatabase:
-          name: n8n-db
-          property: password
-      - key: DB_POSTGRESDB_TIMEOUT
-        value: "60000" 
-      - key: N8N_ENCRYPTION_KEY
-        value: "8761db1d45be89f8a85ebd792fe60ffe5343d9c21fe9b404a6bf960151fe02d4"
-      - key: N8N_TASKS_RUNNER_JS_ENABLED
-        value: "true" #
-      - key: N8N_TASKS_RUNNER_PYTHON_ENABLED
-        value: "true" #
+projects:
+  - name: Whatsapp PDVS
+    environments:
+      - name: testing
+        services:
+          - type: web
+            name: n8n-app
+            env: docker
+            dockerfilePath: ./n8n/Dockerfile
+            plan: free
+            region: oregon
+            healthCheckPath: /healthz
+            envVars:
+              - key: PORT
+                value: 5678
+              - key: N8N_PORT
+                value: 5678
+              - key: DB_TYPE
+                value: postgresdb
+              - key: DB_POSTGRESDB_HOST
+                fromDatabase:
+                  name: n8n-db
+                  property: host
+              - key: DB_POSTGRESDB_PORT
+                value: 5432
+              - key: DB_POSTGRESDB_DATABASE
+                fromDatabase:
+                  name: n8n-db
+                  property: database
+              - key: DB_POSTGRESDB_USER
+                fromDatabase:
+                  name: n8n-db
+                  property: user
+              - key: DB_POSTGRESDB_PASSWORD
+                fromDatabase:
+                  name: n8n-db
+                  property: password
+              - key: DB_POSTGRESDB_TIMEOUT
+                value: "60000" 
+              - key: N8N_ENCRYPTION_KEY
+                value: "8761db1d45be89f8a85ebd792fe60ffe5343d9c21fe9b404a6bf960151fe02d4"
+              - key: N8N_TASKS_RUNNER_JS_ENABLED
+                value: "true" #
+              - key: N8N_TASKS_RUNNER_PYTHON_ENABLED
+                value: "true" #
 
-    
-  - type: web
-    name: evolution-api
-    env: docker
-    dockerfilePath: ./evolution/Dockerfile
-    plan: free
-    region: oregon
-    envVars:
-      - key: DATABASE_CONNECTION_URI
-        value: postgresql://${DB_USER}:${DB_PASSWORD}@${DB_HOST}/${DB_NAME}?schema=evolution
-      - key: DB_USER
-        fromDatabase:
-          name: n8n-db
-          property: user
-      - key: DB_PASSWORD
-        fromDatabase:
-          name: n8n-db
-          property: password
-      - key: DB_HOST
-        fromDatabase:
-          name: n8n-db
-          property: host
-      - key: DB_NAME
-        fromDatabase:
-          name: n8n-db
-          property: database
-      - key: CACHE_REDIS_URI
-        fromService: 
-          type: keyvalue
-          name: n8n-cache
-          property: connectionString
-      - key: AUTHENTICATION_API_KEY
-        value: 5da2b7cd3b04394e9cc091cc9748a508e4572c7feaa33489d4ff13a8ddce6bb6
-      - key: SERVER_URL
-        value: https://evolution-api.onrender.com
+            
+          - type: web
+            name: evolution-api
+            env: docker
+            dockerfilePath: ./evolution/Dockerfile
+            plan: free
+            region: oregon
+            envVars:
+              - key: DATABASE_CONNECTION_URI
+                value: postgresql://${DB_USER}:${DB_PASSWORD}@${DB_HOST}/${DB_NAME}?schema=evolution
+              - key: DB_USER
+                fromDatabase:
+                  name: n8n-db
+                  property: user
+              - key: DB_PASSWORD
+                fromDatabase:
+                  name: n8n-db
+                  property: password
+              - key: DB_HOST
+                fromDatabase:
+                  name: n8n-db
+                  property: host
+              - key: DB_NAME
+                fromDatabase:
+                  name: n8n-db
+                  property: database
+              - key: CACHE_REDIS_URI
+                fromService: 
+                  type: keyvalue
+                  name: n8n-cache
+                  property: connectionString
+              - key: AUTHENTICATION_API_KEY
+                value: 5da2b7cd3b04394e9cc091cc9748a508e4572c7feaa33489d4ff13a8ddce6bb6
+              - key: SERVER_URL
+                value: https://evolution-api.onrender.com
 
-  - type: keyvalue
-    name: n8n-cache
-    region: oregon
-    plan: free 
-    ipAllowList: [] 
+          - type: keyvalue
+            name: n8n-cache
+            region: oregon
+            plan: free 
+            ipAllowList: [] 
 
-databases:
-  - name: n8n-db
-    plan: free
-    region: oregon
+        databases:
+          - name: n8n-db
+            plan: free
+            region: oregon
