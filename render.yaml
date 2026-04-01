@@ -3,7 +3,7 @@ services:
     name: n8n-app
     env: docker
     dockerfilePath: ./n8n/Dockerfile
-    plan: starter
+    plan: free
     region: oregon
     healthCheckPath: /healthz
     envVars:
@@ -48,7 +48,7 @@ services:
     name: evolution-api
     env: docker
     dockerfilePath: ./evolution/Dockerfile
-    plan: starter
+    plan: free
     region: oregon
     envVars:
       - key: DATABASE_CONNECTION_URI
@@ -82,7 +82,7 @@ services:
   - type: keyvalue
     name: n8n-cache
     region: oregon
-    plan: starter 
+    plan: free 
     ipAllowList: [] 
 
 databases:
