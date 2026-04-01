@@ -34,16 +34,13 @@ services:
       - key: DB_POSTGRESDB_TIMEOUT
         value: "60000" 
       - key: N8N_ENCRYPTION_KEY
-        generateValue: true
+        value: "8761db1d45be89f8a85ebd792fe60ffe5343d9c21fe9b404a6bf960151fe02d4"
       - key: N8N_TASKS_RUNNER_JS_ENABLED
         value: "true" #
       - key: N8N_TASKS_RUNNER_PYTHON_ENABLED
         value: "true" #
-    disk:
-      name: n8n-storage
-      mountPath: /home/node/.n8n
-      sizeGB: 1
 
+    
   - type: web
     name: evolution-api
     env: docker
