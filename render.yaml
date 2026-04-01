@@ -1,6 +1,7 @@
 projects:
   - name: Whatsapp PDVS
     environments:
+      - name: testing 
         services:
           - type: web
             name: n8n-app
