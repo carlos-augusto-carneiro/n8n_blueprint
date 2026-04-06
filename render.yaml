@@ -46,6 +46,23 @@ projects:
               - key: N8N_TASKS_RUNNER_PYTHON_ENABLED
                 value: "true" #
 
+              - key: NODE_OPTIONS
+                value: "--max-old-space-size=400"
+                
+              # 2. Desliga o salvamento de logs de execuções com sucesso (Economiza MUITA RAM e CPU)
+              - key: EXECUTIONS_DATA_SAVE_ON_SUCCESS
+                value: "none"
+                
+              # 3. Não salva o progresso nó por nó na memória
+              - key: EXECUTIONS_DATA_SAVE_ON_PROGRESS
+                value: "false"
+                
+              # 4. Limpa execuções antigas a cada 24h
+              - key: EXECUTIONS_DATA_PRUNE
+                value: "true"
+              - key: EXECUTIONS_DATA_MAX_AGE
+                value: "24"
+
             
           # 2. Evolution API (v2.3.6 / v2.14.2)
           - type: web
