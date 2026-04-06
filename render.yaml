@@ -15,12 +15,14 @@ projects:
                 value: 5678
               - key: N8N_PORT
                 value: 5678
+              - key: DB_TYPE
+                value: "postgresdb"
               - key: DB_POSTGRESDB_URL
                 fromDatabase:
                   name: n8n-db
                   property: connectionString
               - key: WEBHOOK_URL
-                value: https://n8n-app-gglg.onrender.com/ # Ajuste com sua URL do Render
+                value: https://n8n-app-gglg.onrender.com/
               - key: N8N_ENCRYPTION_KEY
                 value: "8761db1d45be89f8a85ebd792fe60ffe5343d9c21fe9b404a6bf960151fe02d4"
               - key: N8N_TASKS_RUNNER_JS_ENABLED
