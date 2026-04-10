@@ -3,21 +3,13 @@ projects:
     environments:
       - name: testing 
         services:
-  # 1. Banco de Dados PostgreSQL (Produção)
-          - type: database
-            name: pdvs-db-prod
-            databaseName: n8n_evolution_db
-            user: admin_pdvs
-            plan: free # Mínimo absoluto. Para 50k usuários, considere o plano 'Pro' futuramente.
-            region: oregon
-
-          # 2. Redis (Broker e Cache)
+          # 1. Redis (Broker e Cache)
           - type: keyvalue
             name: pdvs-redis-broker
-            plan: free
+            plan: free # Troque para starter se houver atrasos na fila
             region: oregon
 
-          # 3. n8n Main (Editor e Orquestrador)
+          # 2. n8n Main (Editor e Orquestrador)
           - type: web
             name: n8n-main
             env: docker
@@ -29,7 +21,7 @@ projects:
               - key: N8N_ENFORCE_SETTINGS_FILE_PERMISSIONS
                 value: "true"
               - key: EXECUTIONS_MODE
-                value: queue # ATIVA O MODO FILA
+                value: queue
               - key: QUEUE_BULL_REDIS_HOST
                 fromService:
                   name: pdvs-redis-broker
@@ -55,16 +47,16 @@ projects:
               - key: EXECUTIONS_DATA_MAX_AGE
                 value: "24"
               - key: NODE_OPTIONS
-                value: "--max-old-space-size=1024" # Aumentado para o plano free
+                value: "--max-old-space-size=450" # Ajustado para o limite real do plano Free (~512MB)
 
-          # 4. n8n Worker (Quem realmente trabalha)
+          # 3. n8n Worker (Quem realmente trabalha)
           - type: worker
             name: n8n-worker-heavy
             env: docker
             dockerfilePath: ./n8n/Dockerfile
             plan: free
             region: oregon
-            numInstances: 2 # ESCALABILIDADE HORIZONTAL: Aumente este número para suportar mais carga
+            # numInstances: 2 # O plano Free da Render NÃO permite múltiplas instâncias
             envVars:
               - key: EXECUTIONS_MODE
                 value: queue
@@ -79,16 +71,15 @@ projects:
                   name: pdvs-db-prod
                   property: connectionString
               - key: NODE_OPTIONS
-                value: "--max-old-space-size=1024"
+                value: "--max-old-space-size=450"
 
-          # 5. Evolution API
+          # 4. Evolution API
           - type: web
             name: evolution-api
             env: docker
             dockerfilePath: ./evolution/Dockerfile
             plan: free
             region: oregon
-            numInstances: 2 # Escala conforme o número de instâncias de WhatsApp
             envVars:
               - key: DATABASE_ENABLED
                 value: "true"
@@ -108,3 +99,11 @@ projects:
                 value: https://evolution-api.onrender.com 
               - key: AUTHENTICATION_API_KEY
                 value: 5da2b7cd3b04394e9cc091cc9748a508e4572c7feaa33489d4ff13a8ddce6bb6
+
+        # AQUI ESTÁ A CORREÇÃO: Databases ficam fora da lista de 'services'
+        databases:
+          - name: pdvs-db-prod
+            databaseName: n8n_evolution_db
+            user: admin_pdvs
+            plan: free
+            region: oregon
