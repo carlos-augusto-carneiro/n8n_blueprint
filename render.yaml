@@ -3,13 +3,14 @@ projects:
     environments:
       - name: testing 
         services:
-          # 1. Redis (Broker e Cache)
+          # 1. Redis (Corrigido: Adicionado ipAllowList)
           - type: keyvalue
             name: pdvs-redis-broker
-            plan: free # Troque para starter se houver atrasos na fila
+            plan: free
             region: oregon
+            ipAllowList: [] # Obrigatório para o tipo keyvalue
 
-          # 2. n8n Main (Editor e Orquestrador)
+          # 2. n8n Main
           - type: web
             name: n8n-main
             env: docker
@@ -24,10 +25,12 @@ projects:
                 value: queue
               - key: QUEUE_BULL_REDIS_HOST
                 fromService:
+                  type: keyvalue # Corrigido: type agora é obrigatório
                   name: pdvs-redis-broker
                   property: host
               - key: QUEUE_BULL_REDIS_PORT
                 fromService:
+                  type: keyvalue # Corrigido: type agora é obrigatório
                   name: pdvs-redis-broker
                   property: port
               - key: DB_TYPE
@@ -47,21 +50,21 @@ projects:
               - key: EXECUTIONS_DATA_MAX_AGE
                 value: "24"
               - key: NODE_OPTIONS
-                value: "--max-old-space-size=450" # Ajustado para o limite real do plano Free (~512MB)
+                value: "--max-old-space-size=450"
 
-          # 3. n8n Worker (Quem realmente trabalha)
+          # 3. n8n Worker
           - type: worker
             name: n8n-worker-heavy
             env: docker
             dockerfilePath: ./n8n/Dockerfile
             plan: free
             region: oregon
-            # numInstances: 2 # O plano Free da Render NÃO permite múltiplas instâncias
             envVars:
               - key: EXECUTIONS_MODE
                 value: queue
               - key: QUEUE_BULL_REDIS_HOST
                 fromService:
+                  type: keyvalue # Corrigido: type agora é obrigatório
                   name: pdvs-redis-broker
                   property: host
               - key: DB_TYPE
@@ -93,6 +96,7 @@ projects:
                 value: "true"
               - key: CACHE_REDIS_URI
                 fromService:
+                  type: keyvalue # Corrigido: type agora é obrigatório
                   name: pdvs-redis-broker
                   property: connectionString
               - key: SERVER_URL
@@ -100,7 +104,6 @@ projects:
               - key: AUTHENTICATION_API_KEY
                 value: 5da2b7cd3b04394e9cc091cc9748a508e4572c7feaa33489d4ff13a8ddce6bb6
 
-        # AQUI ESTÁ A CORREÇÃO: Databases ficam fora da lista de 'services'
         databases:
           - name: pdvs-db-prod
             databaseName: n8n_evolution_db
