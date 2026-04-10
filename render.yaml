@@ -3,112 +3,108 @@ projects:
     environments:
       - name: testing 
         services:
+  # 1. Banco de Dados PostgreSQL (Produção)
+          - type: database
+            name: pdvs-db-prod
+            databaseName: n8n_evolution_db
+            user: admin_pdvs
+            plan: free # Mínimo absoluto. Para 50k usuários, considere o plano 'Pro' futuramente.
+            region: oregon
+
+          # 2. Redis (Broker e Cache)
+          - type: keyvalue
+            name: pdvs-redis-broker
+            plan: free
+            region: oregon
+
+          # 3. n8n Main (Editor e Orquestrador)
           - type: web
-            name: n8n-app
+            name: n8n-main
             env: docker
             dockerfilePath: ./n8n/Dockerfile
             plan: free
             region: oregon
             healthCheckPath: /healthz
             envVars:
-              - key: PORT
-                value: 5678
-              - key: N8N_PORT
-                value: 5678
+              - key: N8N_ENFORCE_SETTINGS_FILE_PERMISSIONS
+                value: "true"
+              - key: EXECUTIONS_MODE
+                value: queue # ATIVA O MODO FILA
+              - key: QUEUE_BULL_REDIS_HOST
+                fromService:
+                  name: pdvs-redis-broker
+                  property: host
+              - key: QUEUE_BULL_REDIS_PORT
+                fromService:
+                  name: pdvs-redis-broker
+                  property: port
               - key: DB_TYPE
-                value: "postgresdb"
+                value: postgresdb
               - key: DB_POSTGRESDB_URL
                 fromDatabase:
-                  name: n8n-db
+                  name: pdvs-db-prod
                   property: connectionString
-              - key: DB_POSTGRESDB_HOST
-                fromDatabase:
-                  name: n8n-db
-                  property: host
-              - key: DB_POSTGRESDB_DATABASE
-                fromDatabase:
-                  name: n8n-db
-                  property: database
-              - key: DB_POSTGRESDB_USER
-                fromDatabase:
-                  name: n8n-db
-                  property: user
-              - key: DB_POSTGRESDB_PASSWORD
-                fromDatabase:
-                  name: n8n-db
-                  property: password
-              - key: WEBHOOK_URL
-                value: https://n8n-app-gglg.onrender.com/
               - key: N8N_ENCRYPTION_KEY
                 value: "8761db1d45be89f8a85ebd792fe60ffe5343d9c21fe9b404a6bf960151fe02d4"
-              - key: N8N_TASKS_RUNNER_JS_ENABLED
-                value: "true" #
-              - key: N8N_TASKS_RUNNER_PYTHON_ENABLED
-                value: "true" #
-
-              - key: NODE_OPTIONS
-                value: "--max-old-space-size=400"
-                
-              # 2. Desliga o salvamento de logs de execuções com sucesso (Economiza MUITA RAM e CPU)
+              - key: WEBHOOK_URL
+                value: https://n8n-app-gglg.onrender.com/
               - key: EXECUTIONS_DATA_SAVE_ON_SUCCESS
-                value: "none"
-                
-              # 3. Não salva o progresso nó por nó na memória
-              - key: EXECUTIONS_DATA_SAVE_ON_PROGRESS
-                value: "false"
-                
-              # 4. Limpa execuções antigas a cada 24h
+                value: none
               - key: EXECUTIONS_DATA_PRUNE
                 value: "true"
               - key: EXECUTIONS_DATA_MAX_AGE
                 value: "24"
+              - key: NODE_OPTIONS
+                value: "--max-old-space-size=1024" # Aumentado para o plano free
 
-            
-          # 2. Evolution API (v2.3.6 / v2.14.2)
+          # 4. n8n Worker (Quem realmente trabalha)
+          - type: worker
+            name: n8n-worker-heavy
+            env: docker
+            dockerfilePath: ./n8n/Dockerfile
+            plan: free
+            region: oregon
+            numInstances: 2 # ESCALABILIDADE HORIZONTAL: Aumente este número para suportar mais carga
+            envVars:
+              - key: EXECUTIONS_MODE
+                value: queue
+              - key: QUEUE_BULL_REDIS_HOST
+                fromService:
+                  name: pdvs-redis-broker
+                  property: host
+              - key: DB_TYPE
+                value: postgresdb
+              - key: DB_POSTGRESDB_URL
+                fromDatabase:
+                  name: pdvs-db-prod
+                  property: connectionString
+              - key: NODE_OPTIONS
+                value: "--max-old-space-size=1024"
+
+          # 5. Evolution API
           - type: web
             name: evolution-api
             env: docker
             dockerfilePath: ./evolution/Dockerfile
             plan: free
             region: oregon
+            numInstances: 2 # Escala conforme o número de instâncias de WhatsApp
             envVars:
-              - key: PORT
-                value: 8080
               - key: DATABASE_ENABLED
                 value: "true"
               - key: DATABASE_PROVIDER
                 value: postgresql
-              # MONTAGEM DA URL DO BANCO (Postgres)
-              # Aqui evitamos o erro "invalid provider" forçando o prefixo postgresql://
               - key: DATABASE_CONNECTION_URI
                 fromDatabase:
-                  name: n8n-db
+                  name: pdvs-db-prod
                   property: connectionString
-            
-
-              # CONFIGURAÇÃO DO CACHE (Redis / Key Value)
-              # Importante: A chave para o Redis DEVE ser CACHE_REDIS_URI
+              - key: CACHE_REDIS_ENABLED
+                value: "true"
               - key: CACHE_REDIS_URI
                 fromService:
-                  type: keyvalue
-                  name: n8n-cache
+                  name: pdvs-redis-broker
                   property: connectionString
-
-              # CONFIGURAÇÕES GERAIS
+              - key: SERVER_URL
+                value: https://evolution-api.onrender.com 
               - key: AUTHENTICATION_API_KEY
                 value: 5da2b7cd3b04394e9cc091cc9748a508e4572c7feaa33489d4ff13a8ddce6bb6
-              - key: SERVER_URL
-                value: https://evolution-api.onrender.com # Ajuste com sua URL do Render
-              - key: DELAY_MESSAGES
-                value: "true"
-
-          - type: keyvalue
-            name: n8n-cache
-            region: oregon
-            plan: free 
-            ipAllowList: [] 
-
-        databases:
-          - name: n8n-db
-            plan: free
-            region: oregon
